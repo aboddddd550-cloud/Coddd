@@ -1,0 +1,92 @@
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./styles.css";
+
+const root = createRoot(document.getElementById("root"));
+root.render(<App />);
+import { io } from "socket.io-client";
+
+// هنا عنوان السيرفر؛ غيّره إذا كان مختلفًا
+const SOCKET_URL = process.env.SOCKET_URL || "http://localhost:3001";
+
+export const socket = io(SOCKET_URL, {
+  autoConnect: false,
+  transports: ["websocket", "polling"]
+});
+import React, { useEffect, useState } from "react";
+import { socket } from "./api";
+import Board from "./Board";
+
+export default function App() {
+  const [connected, setConnected] = useState(false);
+  const [roomId, setRoomId] = useState("");
+  const [board, setBoard] = useState(null);
+  const [myRoom, setMyRoom] = useState(null);
+
+  useEffect(() => {
+    // اتّصال Socket بعد تحميل الـ App
+    socket.on("connect", () => setConnected(true));
+    socket.on("disconnect", () => setConnected(false));
+
+    socket.on("board", (b) => {
+      setBoard(b);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("board");
+    };
+  }, []);
+
+  function handleCreate() {
+    if (!roomId) {
+      alert("ضع معرف غرفة (مثال: room1)");
+      return;
+    }
+    socket.connect();
+    socket.emit("createRoom", roomId);
+    setMyRoom(roomId);
+  }
+
+  function handleJoin() {
+    if (!roomId) {
+      alert("ضع معرف غرفة للانضمام");
+      return;
+    }
+    socket.connect();
+    socket.emit("joinRoom", roomId);
+    setMyRoom(roomId);
+  }
+
+  function revealCard(index) {
+    if (!myRoom) return;
+    socket.emit("reveal", { roomId: myRoom, index });
+  }
+
+  return (
+    <div className="container">
+      <h1>Codenames — Client</h1>
+      <div className="controls">
+        <input
+          placeholder="Room id (مثال: room1)"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+        />
+        <button onClick={handleCreate}>إنشاء غرفة</button>
+        <button onClick={handleJoin}>انضم لغرفة</button>
+        <div className="status">
+          {connected ? "متصل بالـ Server" : "غير متصل"}{" "}
+          {myRoom ? ` | الغرفة: ${myRoom}` : ""}
+        </div>
+      </div>
+
+      {board ? (
+        <Board board={board} onReveal={revealCard} />
+      ) : (
+        <p>اللوحة ستظهر هنا بعد إنشاء الغرفة أو الانضمام إليها.</p>
+      )}
+</div>
+  );
+}
