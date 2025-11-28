@@ -1,0 +1,38 @@
+body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
+.container { max-width: 960px; margin: 0 auto; text-align: center; }
+.controls { margin-bottom: 16px; }
+.controls input { padding: 8px; width: 220px; margin-right: 8px; }
+.controls button { padding: 8px 12px; margin-right: 6px; }
+.status { margin-top: 8px; }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.card {
+  border-radius: 8px;
+  padding: 18px;
+  min-height: 80px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  background: #f1f1f1;
+  transition: transform .08s ease;
+  user-select: none;
+}
+
+.card:hover { transform: translateY(-3px); }
+
+.card.revealed { filter: brightness(.9); color: #fff; }
+.card.revealed .tag { margin-top: 8px; font-weight: bold; }
+
+.card.red.revealed { background: #d9534f; }
+.card.blue.revealed { background: #337ab7; }
+.card.black.revealed { background: #222; }
+.card.neutral.revealed { background: #6c757d; }
+
+.word { font-size: 18px; text-transform: uppercase; }
